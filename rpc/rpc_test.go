@@ -19,7 +19,8 @@ func TestEncode(t *testing.T) {
 
 func TestDecode(t *testing.T) {
 	incomingMessage := "Content-Length: 16\r\n\r\n{\"Testing\":true}"
-	_, contentLength, err := rpc.DecodeMessage([]byte(incomingMessage))
+	_, content, err := rpc.DecodeMessage([]byte(incomingMessage))
+	contentLength := len(content)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,7 +31,8 @@ func TestDecode(t *testing.T) {
 
 func TestDecodeMethod(t *testing.T) {
 	incomingMessage := "Content-Length: 36\r\n\r\n{\"Method\":\"textDocument/completion\"}"
-	method, contentLength, err := rpc.DecodeMessage([]byte(incomingMessage))
+	method, content, err := rpc.DecodeMessage([]byte(incomingMessage))
+	contentLength := len(content)
 	if err != nil {
 		t.Fatal(err)
 	}
