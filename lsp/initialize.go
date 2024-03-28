@@ -26,6 +26,7 @@ type InitializeResult struct {
 
 type ServerCapabilities struct {
 	TextDocumentSync int `json:"textDocumentSync"`
+	HoverProvider bool `json:"hoverProvider"`
 }
 
 type ServerInfo struct {
@@ -39,7 +40,10 @@ func NewInitializeResponse(id int) InitializeResponse {
 			RPC: "2.0",
 			ID:  &id},
 		Result: InitializeResult{
-			Capabilities: ServerCapabilities{TextDocumentSync: 1},
+			Capabilities: ServerCapabilities{
+				TextDocumentSync: 1,
+				HoverProvider: true,
+			},
 			ServerInfo:   ServerInfo{Name: "FirstLSP", Version: "0.0.1"},
 		},
 	}
