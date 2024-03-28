@@ -52,7 +52,6 @@ func handleMessage(logger *log.Logger, state *analysis.State, method string, con
 			logger.Printf("Cannot parse didOpen notification: %s", err)
 		}
 		logger.Printf("Opened: %s", request.Params.TextDocument.URI)
-		logger.Printf("Content: %s", request.Params.TextDocument.Text)
 		state.OpenDocument(request.Params.TextDocument.URI, request.Params.TextDocument.Text)
 	case "textDocument/didChange":
 		var request lsp.DidChangeTextDocumentNotification
@@ -60,7 +59,6 @@ func handleMessage(logger *log.Logger, state *analysis.State, method string, con
 			logger.Printf("Cannot parse didChange notification: %s", err)
 		}
 		logger.Printf("Opened: %s", request.Params.TextDocument.URI)
-		logger.Printf("Content: %s", request.Params.ContentChanges)
 		for _, change := range request.Params.ContentChanges {
 			state.UpdateDocument(request.Params.TextDocument.URI, change.Text)
 		}
