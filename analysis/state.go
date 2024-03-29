@@ -2,6 +2,7 @@ package analysis
 
 import (
 	"fmt"
+	"strings"
 	"github.com/ViktorTomkovic/go-firstlsp/lsp"
 )
 
@@ -56,3 +57,80 @@ func (s *State) Definition(id int, uri string, position lsp.Position) lsp.Defini
 		},
 	}
 }
+
+func (s *State) CodeAction(id int, uri string) lsp.CodeActionResponse {
+	text := s.Documents[uri]
+	actions := []lsp.CodeAction{}
+	for row, line := range strings.Split(text, "\n") {
+		idx := strings.Index(line, "VS Code")
+		if idx >= 0 {
+			replaceChange := map[string][]lsp.TextEdit{}
+			replaceChange[uri] = []lsp.TextEdit{
+				{
+					Range: LineRange(row, idx, idx+len("VS Code")),
+					NewText: "Neovim",
+				},
+			}
+			actions = append(actions, lsp.CodeAction{
+				Title: "Use more customazible editor",
+				Edit: &lsp.WorkspaceEdit{
+					Changes: replaceChange,
+				},
+			})
+			censorChange := map[string][]lsp.TextEdit{}
+			censorChange[uri] = []lsp.TextEdit{
+				{
+					Range: LineRange(row, idx, idx+len("VS Code")),
+					NewText: "VS C*de",
+				},
+			}
+			actions = append(actions, lsp.CodeAction{
+				Title: "Censor profanity",
+				Edit: &lsp.WorkspaceEdit{Changes: censorChange},
+			})
+		}
+	}
+	return lsp.CodeActionResponse {
+		Response: lsp.Response{
+			RPC: "2.0",
+			ID: &id,
+		},
+		Result: actions,
+	}
+}
+
+func (s *State) Completion(id int, uri string) lsp.CompletionResponse {
+	items := []lsp.CompletionItem{
+		{
+			Label: "Neovim",
+			Detail: "Very cool editor",
+			Documentation: "More description about how awesome this editor is.",
+		},
+		{
+			Label: "Neovim2",
+			Detail: "Very cool editor2",
+			Documentation: "More desc2ription about how awesome this editor is.",
+		},
+	}
+	return lsp.CompletionResponse {
+		Response: lsp.Response{
+			RPC: "2.0",
+			ID: &id,
+		},
+		Result: items,
+	}
+}
+
+func LineRange(line, start, end int) lsp.Range {
+	return lsp.Range{
+		Start: lsp.Position{
+			Line: line,
+			Character: start,
+		},
+		End: lsp.Position{
+			Line: line,
+			Character: end,
+		},
+	}
+}
+

@@ -40,9 +40,8 @@ func handleMessage(logger *log.Logger, writer io.Writer, state *analysis.State, 
 		}
 		logger.Printf("Connected to: %s %s", request.Params.ClientInfo.Name, request.Params.ClientInfo.Version)
 		// reply to init request
-		msg := lsp.NewInitializeResponse(request.ID)
-		reply := rpc.EncodeMessage(msg)
-		writeResponse(logger, writer, reply)
+		response := lsp.NewInitializeResponse(request.ID)
+		writeResponse(logger, writer, response)
 		logger.Printf("Sent response initialize")
 	case "textDocument/didOpen":
 		var request lsp.DidOpenTextDocumentNotification
@@ -67,8 +66,7 @@ func handleMessage(logger *log.Logger, writer io.Writer, state *analysis.State, 
 			return
 		}
 		response := state.Hover(request.ID, request.Params.TextDocument.URI, request.Params.Position)
-		reply := rpc.EncodeMessage(response)
-		writeResponse(logger, writer, reply)
+		writeResponse(logger, writer, response)
 	case "textDocument/definition":
 		var request lsp.DefinitionRequest
 		if err := json.Unmarshal(contents, &request); err != nil {
@@ -76,12 +74,28 @@ func handleMessage(logger *log.Logger, writer io.Writer, state *analysis.State, 
 			return
 		}
 		response := state.Definition(request.ID, request.Params.TextDocument.URI, request.Params.Position)
-		reply := rpc.EncodeMessage(response)
-		writeResponse(logger, writer, reply)
+		writeResponse(logger, writer, response)
+	case "textDocument/codeAction":
+		var request lsp.CodeActionRequest
+		if err := json.Unmarshal(contents, &request); err != nil {
+			logger.Printf("textDocument/codeAction: %s", err)
+			return
+		}
+		response := state.CodeAction(request.ID, request.Params.TextDocument.URI)
+		writeResponse(logger, writer, response)
+	case "textDocument/completion":
+		var request lsp.CompletionRequest
+		if err := json.Unmarshal(contents, &request); err != nil {
+			logger.Printf("textDocument/completion: %s", err)
+			return
+		}
+		response := state.Completion(request.ID, request.Params.TextDocument.URI)
+		writeResponse(logger, writer, response)
 	}
 }
 
-func writeResponse(logger *log.Logger, writer io.Writer, reply string) {
+func writeResponse(logger *log.Logger, writer io.Writer, msg any) {
+	reply := rpc.EncodeMessage(msg)
 	_, err := writer.Write([]byte(reply))
 	if err != nil {
 		logger.Printf("Could not reply: %s", err)

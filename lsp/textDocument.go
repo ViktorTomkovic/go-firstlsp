@@ -13,7 +13,7 @@ type TextDocumentIdentifier struct {
 
 type VersionTextDocumentIdentifier struct {
 	TextDocumentIdentifier
-	Version string `json:"version"`
+	Version int `json:"version"`
 }
 
 type TextDocumentPositionParams struct {
@@ -36,3 +36,12 @@ type Range struct {
 	End Position `json:"end"`
 }
 
+type WorkspaceEdit struct {
+	// files -> TextEdits which will be applied
+	Changes map[string][]TextEdit `json:"changes"`
+}
+
+type TextEdit struct {
+	Range Range `json:"range"`
+	NewText string `json:"newText"`
+}
