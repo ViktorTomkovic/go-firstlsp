@@ -3,6 +3,7 @@ package analysis
 import (
 	"fmt"
 	"strings"
+	"unicode"
 	"github.com/ViktorTomkovic/go-firstlsp/lsp"
 )
 
@@ -15,12 +16,39 @@ func NewState() State {
 	return State {Documents: map[string]string{}}
 }
 
-func (s *State) OpenDocument(uri, text string) {
-	s.Documents[uri] = text
+func getDiagnostics(text string) []lsp.Diagnostic {
+	diagnostics := []lsp.Diagnostic{}
+	for row, line := range strings.Split(text, "\n") {
+		if idx := strings.Index(line, "VS Code"); idx >= 0 {
+			diagnostics = append(diagnostics, lsp.Diagnostic{
+				Range: LineRange(row, idx, idx+len("VS Code")),
+				Severity: 2,
+				Source: "Common Sense",
+				Message: "We do not speak profanities here.",
+			})
+		}
+		lineLen := len(line)
+		trimLen := len(strings.TrimRightFunc(line, unicode.IsSpace))
+		if trimLen < lineLen {
+			diagnostics = append(diagnostics, lsp.Diagnostic{
+				Range: LineRange(row, trimLen, lineLen),
+				Severity: 2,
+				Source: "Whitespace check",
+				Message: "Trailing whitespace",
+			})
+		}
+	}
+	return diagnostics
 }
 
-func (s *State) UpdateDocument(uri, text string) {
+func (s *State) OpenDocument(uri, text string) []lsp.Diagnostic {
 	s.Documents[uri] = text
+	return getDiagnostics(text)
+}
+
+func (s *State) UpdateDocument(uri, text string) []lsp.Diagnostic {
+	s.Documents[uri] = text
+	return getDiagnostics(text)
 }
 
 func (s *State) Hover(id int, uri string, position lsp.Position) lsp.HoverResponse {
