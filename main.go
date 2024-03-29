@@ -66,16 +66,17 @@ func handleMessage(logger *log.Logger, writer io.Writer, state *analysis.State, 
 			logger.Printf("textDocument/hover: %s", err)
 			return
 		}
-		msg := lsp.HoverResponse{
-			Response: lsp.Response{
-				RPC: "2.0",
-				ID: &request.ID,
-			},
-			Result: lsp.HoverResult{
-				Contents: "Hello, from firstLSP.",
-			},
+		response := state.Hover(request.ID, request.Params.TextDocument.URI, request.Params.Position)
+		reply := rpc.EncodeMessage(response)
+		writeResponse(logger, writer, reply)
+	case "textDocument/definition":
+		var request lsp.DefinitionRequest
+		if err := json.Unmarshal(contents, &request); err != nil {
+			logger.Printf("textDocument/definition: %s", err)
+			return
 		}
-		reply := rpc.EncodeMessage(msg)
+		response := state.Definition(request.ID, request.Params.TextDocument.URI, request.Params.Position)
+		reply := rpc.EncodeMessage(response)
 		writeResponse(logger, writer, reply)
 	}
 }
